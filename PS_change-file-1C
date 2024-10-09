@@ -1,0 +1,33 @@
+# Определяем путь к новому файлу
+$newFile = "C:\Temp\ibases.v8i"
+
+# Определяем папку с профилями пользователей
+$profiles = Get-WmiObject Win32_UserProfile | Where-Object { $_.Special -eq $false }
+
+foreach ($profile in $profiles) {
+    # Формируем путь к файлу у каждого пользователя
+    $userAppDataPath = Join-Path $profile.LocalPath "AppData\Roaming\1C\1CEStart"
+    $targetFile = Join-Path $userAppDataPath "ibases.v8i"
+
+    if (Test-Path $userAppDataPath) {
+        # Проверяем, существует ли файл у пользователя
+        if (Test-Path $targetFile) {
+            # Получаем размер файла
+            $fileSizeKB = (Get-Item $targetFile).Length / 1KB
+
+            # Если файл меньше или равен 1 КБ, заменяем его
+            if ($fileSizeKB -le 1) {
+                Copy-Item -Path $newFile -Destination $targetFile -Force
+                Write-Host "Файл обновлен для пользователя $($profile.LocalPath)"
+            } else {
+                Write-Host "Файл у пользователя $($profile.LocalPath) больше 1 КБ и не был заменен"
+            }
+        } else {
+            # Если файл отсутствует, копируем новый
+            Copy-Item -Path $newFile -Destination $targetFile -Force
+            Write-Host "Файл отсутствовал и был создан для пользователя $($profile.LocalPath)"
+        }
+    } else {
+        Write-Host "Путь $userAppDataPath не найден для пользователя $($profile.LocalPath)"
+    }
+}
