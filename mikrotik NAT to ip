@@ -1,0 +1,29 @@
+#правила микротика для НАТ с заменой Ip адресов
+/ip firewall nat
+:local currentIP [/ip firewall nat get [find chain=srcnat action=src-nat] to-addresses]
+
+:if ($currentIP = "195.140.226.206") do={
+    set [find chain=srcnat action=src-nat] to-addresses=195.140.226.207
+} else={
+    :if ($currentIP = "195.140.226.207") do={
+        set [find chain=srcnat action=src-nat] to-addresses=195.140.226.208
+    } else={
+        :if ($currentIP = "195.140.226.208") do={
+            set [find chain=srcnat action=src-nat] to-addresses=195.140.226.209
+        } else={
+            :if ($currentIP = "195.140.226.209") do={
+                set [find chain=srcnat action=src-nat] to-addresses=195.140.226.210
+            } else={
+                :if ($currentIP = "195.140.226.210") do={
+                    set [find chain=srcnat action=src-nat] to-addresses=195.140.226.211
+                } else={
+                    set [find chain=srcnat action=src-nat] to-addresses=195.140.226.206
+                }
+            }
+        }
+    }
+}
+
+#планировщик для НАТ
+/system scheduler
+add name="Change-NAT-IP" interval=1d on-event="название вашего скрипта" start-time=00:00:00
