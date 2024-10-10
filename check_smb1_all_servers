@@ -1,0 +1,22 @@
+# Задаем путь к файлу с серверами
+$servers = Get-Content -Path "C:\Path\to\servers.txt"
+
+# Проходим по каждому серверу из списка
+foreach ($server in $servers) {
+    try {
+        # Выполняем команду на удалённом сервере через Invoke-Command
+        $smbStatus = Invoke-Command -ComputerName $server -ScriptBlock {
+            Get-WindowsFeature -Name FS-SMB1
+        } -ErrorAction Stop
+
+        # Проверяем статус SMB1
+        if ($smbStatus.InstallState -eq 'Installed') {
+            Write-Host "$server: SMB1 is ENABLED" -ForegroundColor Green
+        } else {
+            Write-Host "$server: SMB1 is DISABLED" -ForegroundColor Yellow
+        }
+    } catch {
+        # В случае ошибки (например, сервер недоступен)
+        Write-Host "$server: Could not connect or check SMB1 status" -ForegroundColor Red
+    }
+}
